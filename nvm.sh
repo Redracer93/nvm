@@ -842,7 +842,7 @@ nvm_set_colors() {
       nvm_echo "Setting colors to: ${INSTALLED_COLOR} ${LTS_AND_SYSTEM_COLOR} ${CURRENT_COLOR} ${NOT_INSTALLED_COLOR} ${DEFAULT_COLOR}"
       nvm_echo "WARNING: Colors may not display because they are not supported in this shell."
     else
-      nvm_echo_with_colors "Setting colors to: \033[$(nvm_print_color_code "${INSTALLED_COLOR}") ${INSTALLED_COLOR}\033[$(nvm_print_color_code "${LTS_AND_SYSTEM_COLOR}") ${LTS_AND_SYSTEM_COLOR}\033[$(nvm_print_color_code "${CURRENT_COLOR}") ${CURRENT_COLOR}\033[$(nvm_print_color_code "${NOT_INSTALLED_COLOR}") ${NOT_INSTALLED_COLOR}\033[$(nvm_print_color_code "${DEFAULT_COLOR}") ${DEFAULT_COLOR}\033[0m"
+      nvm_echo_with_colors "Setting colors to: $(nvm_wrap_with_color_code "${INSTALLED_COLOR}" "${INSTALLED_COLOR}")$(nvm_wrap_with_color_code "${LTS_AND_SYSTEM_COLOR}" "${LTS_AND_SYSTEM_COLOR}")$(nvm_wrap_with_color_code "${CURRENT_COLOR}" "${CURRENT_COLOR}")$(nvm_wrap_with_color_code "${NOT_INSTALLED_COLOR}" "${NOT_INSTALLED_COLOR}")$(nvm_wrap_with_color_code "${DEFAULT_COLOR}" "${DEFAULT_COLOR}")"
     fi
     export NVM_COLORS="$1"
   else
@@ -885,6 +885,18 @@ nvm_get_colors() {
   fi
 
   echo "$COLOR"
+}
+
+nvm_wrap_with_color_code() {
+  local CODE
+  CODE="$(nvm_print_color_code "${1}" 2>/dev/null ||:)"
+  local TEXT
+  TEXT="${2-}"
+  if nvm_has_colors && [ -n "${CODE}" ]; then
+    nvm_echo_with_colors "\033[${CODE}${TEXT}\033[0m"
+  else
+    nvm_echo "${TEXT}"
+  fi
 }
 
 nvm_print_color_code() {
@@ -2811,38 +2823,6 @@ nvm() {
           fi
         done
 
-        local INITIAL_COLOR_INFO
-        local RED_INFO
-        local GREEN_INFO
-        local BLUE_INFO
-        local CYAN_INFO
-        local MAGENTA_INFO
-        local YELLOW_INFO
-        local BLACK_INFO
-        local GREY_WHITE_INFO
-
-        if [ -z "${NVM_NO_COLORS-}"  ] && nvm_has_colors; then
-          INITIAL_COLOR_INFO='\033[0;34m b\033[0m \033[0;34m y\033[0m \033[0;32m g\033[0m \033[0;31m r\033[0m \033[0;37m e\033[0m'
-          RED_INFO='\033[0;31m r\033[0m/\033[1;31mR\033[0m = \033[0;31mred\033[0m / \033[1;31mbold red\033[0m'
-          GREEN_INFO='\033[0;32m g\033[0m/\033[1;32mG\033[0m = \033[0;32mgreen\033[0m / \033[1;32mbold green\033[0m'
-          BLUE_INFO='\033[0;34m b\033[0m/\033[1;34mB\033[0m = \033[0;34mblue\033[0m / \033[1;34mbold blue\033[0m'
-          CYAN_INFO='\033[0;36m c\033[0m/\033[1;36mC\033[0m = \033[0;36mcyan\033[0m / \033[1;36mbold cyan\033[0m'
-          MAGENTA_INFO='\033[0;35m m\033[0m/\033[1;35mM\033[0m = \033[0;35mmagenta\033[0m / \033[1;35mbold magenta\033[0m'
-          YELLOW_INFO='\033[0;33m y\033[0m/\033[1;33mY\033[0m = \033[0;33myellow\033[0m / \033[1;33mbold yellow\033[0m'
-          BLACK_INFO='\033[0;30m k\033[0m/\033[1;30mK\033[0m = \033[0;30mblack\033[0m / \033[1;30mbold black\033[0m'
-          GREY_WHITE_INFO='\033[0;37m e\033[0m/\033[1;37mW\033[0m = \033[0;37mlight grey\033[0m / \033[1;37mwhite\033[0m'
-        else
-          INITIAL_COLOR_INFO='bygre'
-          RED_INFO='r/R = red / bold red'
-          GREEN_INFO='g/G = green / bold green'
-          BLUE_INFO='b/B = blue / bold blue'
-          CYAN_INFO='c/C = cyan / bold cyan'
-          MAGENTA_INFO='m/M = magenta / bold magenta'
-          YELLOW_INFO='y/Y = yellow / bold yellow'
-          BLACK_INFO='k/K = black / bold black'
-          GREY_WHITE_INFO='e/W = light grey / white'
-        fi
-
         local NVM_IOJS_PREFIX
         NVM_IOJS_PREFIX="$(nvm_iojs_prefix)"
         local NVM_NODE_PREFIX
@@ -2919,17 +2899,16 @@ nvm() {
         nvm_echo '  nvm cache clear                             Empty cache directory for nvm'
         nvm_echo '  nvm set-colors [<color codes>]              Set five text colors using format "yMeBg". Available when supported.'
         nvm_echo '                                               Initial colors are:'
-        nvm_echo_with_colors "                                                  ${INITIAL_COLOR_INFO}"
+        nvm_echo_with_colors "                                                  $(nvm_wrap_with_color_code b b)$(nvm_wrap_with_color_code y y)$(nvm_wrap_with_color_code g g)$(nvm_wrap_with_color_code r r)$(nvm_wrap_with_color_code e e)"
         nvm_echo '                                               Color codes:'
-        nvm_echo_with_colors "                                                ${RED_INFO}"
-        nvm_echo_with_colors "                                                ${GREEN_INFO}"
-        nvm_echo_with_colors "                                                ${BLUE_INFO}"
-        nvm_echo_with_colors "                                                ${CYAN_INFO}"
-        nvm_echo_with_colors "                                                ${MAGENTA_INFO}"
-        nvm_echo_with_colors "                                                ${YELLOW_INFO}"
-        nvm_echo_with_colors "                                                ${BLACK_INFO}"
-        nvm_echo_with_colors "                                                ${GREY_WHITE_INFO}"
-        nvm_echo
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code r r)/$(nvm_wrap_with_color_code R R) = $(nvm_wrap_with_color_code r red) / $(nvm_wrap_with_color_code R 'bold red')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code g g)/$(nvm_wrap_with_color_code G G) = $(nvm_wrap_with_color_code g green) / $(nvm_wrap_with_color_code G 'bold green')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code b b)/$(nvm_wrap_with_color_code B B) = $(nvm_wrap_with_color_code b blue) / $(nvm_wrap_with_color_code B 'bold blue')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code c c)/$(nvm_wrap_with_color_code C C) = $(nvm_wrap_with_color_code c cyan) / $(nvm_wrap_with_color_code C 'bold cyan')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code m m)/$(nvm_wrap_with_color_code M M) = $(nvm_wrap_with_color_code m magenta) / $(nvm_wrap_with_color_code M 'bold magenta')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code y y)/$(nvm_wrap_with_color_code Y Y) = $(nvm_wrap_with_color_code y yellow) / $(nvm_wrap_with_color_code Y 'bold yellow')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code k k)/$(nvm_wrap_with_color_code K K) = $(nvm_wrap_with_color_code k black) / $(nvm_wrap_with_color_code K 'bold black')"
+        nvm_echo_with_colors "                                                $(nvm_wrap_with_color_code e e)/$(nvm_wrap_with_color_code W W) = $(nvm_wrap_with_color_code e 'light grey') / $(nvm_wrap_with_color_code W white)"
         nvm_echo 'Example:'
         nvm_echo '  nvm install 8.0.0                     Install a specific version number'
         nvm_echo '  nvm use 8.0                           Use the latest available 8.0.x release'
@@ -4219,7 +4198,7 @@ nvm() {
         nvm_node_version_has_solaris_binary nvm_iojs_version_has_solaris_binary \
         nvm_curl_libz_support nvm_command_info nvm_is_zsh nvm_stdout_is_terminal \
         nvm_npmrc_bad_news_bears \
-        nvm_get_colors nvm_set_colors nvm_print_color_code nvm_format_help_message_colors \
+        nvm_get_colors nvm_set_colors nvm_print_color_code nvm_wrap_with_color_code nvm_format_help_message_colors \
         nvm_echo_with_colors nvm_err_with_colors \
         nvm_get_artifact_compression nvm_install_binary_extract nvm_extract_tarball \
         >/dev/null 2>&1
